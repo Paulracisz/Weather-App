@@ -136,6 +136,8 @@ interface ForecastResponse {
 function App() {
   const [responseObj, setResponseObj] = useState<ForecastResponse | null>(null);
   const [currentHour, setCurrentHour] = useState<number | null>(null);
+  const [currentDay, setCurrentDay] = useState<string | null>(null);
+
 
 
   // how to import api key: import.meta.env.VITE_WEATHER_API_KEY
@@ -176,7 +178,31 @@ function App() {
   function getCurrentTime() {
     let now = new Date
     let currentTime = now.getHours()
+    let currentDay = now.getDay()
     setCurrentHour(currentTime);
+    let day = setDayName(currentDay)
+    setCurrentDay(day)
+  }
+
+  function setDayName(number: number) {
+    switch (number) {
+      case 0:
+        return 'Sunday'
+      case 1:
+        return 'Monday'
+      case 2:
+        return 'Tuesday'
+      case 3:
+        return 'Wednesday'
+      case 4:
+        return 'Thursday'
+      case 5:
+        return 'Friday'
+      case 6:
+        return 'Saturday'
+      default:
+        return 'Current Day Unknown'
+    }
   }
 
 
@@ -184,12 +210,23 @@ function App() {
     <>
       <h1>Weather App</h1>
       <div>
-        <h2>Forecast for {responseObj?.location.name || ""}, {responseObj?.location.region || ""}</h2>
 
         <p>Currently</p>
+        {/* Current Temperature in Farenheit */}
         <h2 className="temp">{currentHour !== null && responseObj?.forecast.forecastday[0].hour[currentHour]?.temp_f
           ? `${responseObj.forecast.forecastday[0].hour[currentHour].temp_f}°F`
           : ""}</h2>
+
+        {/* Current Weather Condition (Ex: Sunny) */}
+        <p>{currentHour !== null && responseObj?.forecast.forecastday[0].hour[currentHour]?.condition.text
+          ? `${responseObj.forecast.forecastday[0].hour[currentHour].condition.text}`
+          : ""}</p>
+
+        {/* High and Low temp and Precip */}
+        <p>High: {responseObj?.forecast.forecastday[0].day.maxtemp_f}° Low: {responseObj?.forecast.forecastday[0].day.maxtemp_f}° </p>
+
+        {/* Current Day and Locale */}
+        <p>{currentDay} • {responseObj?.location.name || ""}</p>
       </div>
       <div className="card">
         <p>
