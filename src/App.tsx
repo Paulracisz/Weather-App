@@ -1,5 +1,5 @@
 import './App.css'
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 
 interface Location {
   name: string;
@@ -138,6 +138,8 @@ function App() {
   const [currentHour, setCurrentHour] = useState<number | null>(null);
   const [currentDay, setCurrentDay] = useState<string | null>(null);
 
+  const currentHourRef = useRef<HTMLDivElement | null>(null);
+
 
 
   // how to import api key: import.meta.env.VITE_WEATHER_API_KEY
@@ -151,6 +153,12 @@ function App() {
       }
     });
   }, []);
+
+  useEffect(() => {
+    if (currentHourRef.current) {
+      currentHourRef.current.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'center'})
+    }
+  }, [responseObj, currentHour])
 
   function get7DayForecast(lat: number, lon: number) {
     fetch(`http://api.weatherapi.com/v1/forecast.json?key=${import.meta.env.VITE_WEATHER_API_KEY}&q=${lat},${lon}&days=7`)
@@ -176,15 +184,15 @@ function App() {
   }
 
   function getCurrentTime() {
-    let now = new Date
-    let currentTime = now.getHours()
-    let currentDay = now.getDay()
+    const now = new Date
+    const currentTime = now.getHours()
+    const currentDay = now.getDay()
     setCurrentHour(currentTime);
-    let day = setDayName(currentDay)
+    const day = setDayName(currentDay)
     setCurrentDay(day)
   }
 
-  function setDayName(number: number) {
+  function setDayName(number: number): string {
     switch (number) {
       case 0:
         return 'Sunday'
@@ -205,6 +213,20 @@ function App() {
     }
   }
 
+  function convertHour(epoch_time: number): string {
+    const date = new Date(epoch_time);
+    let hours = date.getHours();
+
+    const amorpm = hours >= 12 ? 'pm' : 'am';
+
+    hours = hours % 12; // using modulo operator to convert mil time to standard Ex: 13 (mil time) into 1pm
+    if (hours == 0) { // since 0 is 12am, check for that case
+      hours = 12
+    }
+
+    return `${hours}${amorpm}`
+  }
+
 
   return (
     <>
@@ -223,10 +245,26 @@ function App() {
           : ""}</p>
 
         {/* High and Low temp and Precip */}
-        <p>High: {responseObj?.forecast.forecastday[0].day.maxtemp_f}° Low: {responseObj?.forecast.forecastday[0].day.maxtemp_f}° </p>
+        <p>High: {responseObj?.forecast.forecastday[0].day.maxtemp_f}° Low: {responseObj?.forecast.forecastday[0].day.mintemp_f}° Precip: {responseObj?.forecast.forecastday[0].day.daily_chance_of_rain}% </p>
 
         {/* Current Day and Locale */}
         <p>{currentDay} • {responseObj?.location.name || ""}</p>
+
+        <div className="hourly-forecast-scrollable">
+          <div className="hourly-forecast-container">
+            {responseObj?.forecast.forecastday[0].hour.map((_hourObj: object, index: number) => (
+              <div key={index} ref={currentHour === index ? currentHourRef : null} className="hourly-forecast-flex">
+                <p>{responseObj?.forecast.forecastday[0].hour[index].temp_f}°</p>
+
+                <img src={responseObj?.forecast.forecastday[0].hour[index].condition.icon} alt={responseObj?.forecast.forecastday[0].hour[index].condition.text} />
+
+                <p>{responseObj?.forecast.forecastday[0].hour[index].chance_of_rain}%</p>
+
+                <p>{responseObj && convertHour(responseObj?.forecast.forecastday[0].hour[index].time_epoch * 1000)}</p>
+              </div>
+            ))}
+          </div>
+        </div>
       </div>
       <div className="card">
         <p>
