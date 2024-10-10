@@ -40,3 +40,32 @@
 .read-the-docs {
   color: #888;
 }
+
+.temp {
+  font-size: 5em;
+}
+
+h2 {
+  margin: 0;
+}
+
+.hourly-forecast-flex {
+  display: flex;
+  justify-content: center;
+  margin: 20px;
+  flex-direction: column;
+}
+
+.hourly-forecast-container {
+  display: flex;
+  justify-content: center;
+  min-width: max-content;
+  flex-direction: row;
+}
+
+
+.hourly-forecast-scrollable {
+  
+  overflow-x: scroll;
+  
+}
